@@ -3,16 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { TrendingUp, Menu, X, LogIn, User, Moon, Sun } from 'lucide-react';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { AuthModal } from './AuthModal';
+import { TrendingUp, Menu, X, Moon, Sun } from 'lucide-react';
+
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-  const { user, signOut } = useAuth();
   const pathname = usePathname();
 
   // Load theme from localStorage on mount
@@ -76,7 +72,7 @@ export function Header() {
               ))}
             </nav>
 
-            {/* Desktop Auth Button and Theme Toggle */}
+            {/* Desktop Theme Toggle */}
             <div className="hidden md:flex items-center gap-2">
               <button
                 onClick={handleThemeToggle}
@@ -85,26 +81,6 @@ export function Header() {
               >
                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
               </button>
-              {user ? (
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
-                >
-                  <User size={16} />
-                  <span>{user.email?.split('@')[0]}</span>
-                </Link>
-              ) : (
-                <button
-                  onClick={() => {
-                    setAuthMode('signin');
-                    setShowAuthModal(true);
-                  }}
-                  className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
-                >
-                  <LogIn size={16} />
-                  <span>Sign In</span>
-                </button>
-              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -133,26 +109,6 @@ export function Header() {
                   {item.label}
                 </Link>
               ))}
-              {user ? (
-                <Link
-                  href="/profile"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors text-center"
-                >
-                  My Profile
-                </Link>
-              ) : (
-                <button
-                  onClick={() => {
-                    setAuthMode('signin');
-                    setShowAuthModal(true);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="block w-full px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors text-center"
-                >
-                  Sign In
-                </button>
-              )}
               <button
                 onClick={handleThemeToggle}
                 className="block w-full mt-2 px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors flex items-center justify-center gap-2"
@@ -164,16 +120,6 @@ export function Header() {
           )}
         </div>
       </header>
-
-      <AuthModal
-        isOpen={showAuthModal}
-        mode={authMode}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={() => {
-          setShowAuthModal(false);
-          setMobileMenuOpen(false);
-        }}
-      />
     </>
   );
 }

@@ -14,7 +14,6 @@ import {
 } from 'recharts';
 import { useBuyVsRent, BuyVsRentInput } from '@/hooks/useBuyVsRent';
 import { SliderField } from '@/src/components/SliderField';
-import { AuthModal } from '@/src/components/AuthModal';
 import { MARKET_DEFAULTS, DEFAULT_INPUTS } from '@/src/lib/constants';
 import { formatCurrency } from '@/src/lib/formatting';
 import { useAuth } from '@/src/contexts/AuthContext';
@@ -25,14 +24,13 @@ export default function BuyVsRentCalculator() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [reportName, setReportName] = useState('');
   const [saving, setSaving] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [scenarioMode, setScenarioMode] = useState<'normal' | 'roaring20s' | 'lostDecade' | 'crash2008'>('normal');
 
-  const [selectedCountry, setSelectedCountry] = useState('DE');
+  const [selectedCountry, setSelectedCountry] = useState('NL');
   const countryConfig = MARKET_DEFAULTS[selectedCountry as keyof typeof MARKET_DEFAULTS];
 
   // Load theme from localStorage on mount
@@ -47,7 +45,7 @@ export default function BuyVsRentCalculator() {
   useEffect(() => {
     if (searchParams.get('homePrice')) {
       setHomePrice(Number(searchParams.get('homePrice')) || DEFAULT_INPUTS.homePrice);
-      setSelectedCountry(searchParams.get('country') || 'DE');
+      setSelectedCountry(searchParams.get('country') || 'NL');
       setDurationYears(Number(searchParams.get('duration')) || DEFAULT_INPUTS.durationYears);
       setHomeAppreciation(Number(searchParams.get('appreciation')) || DEFAULT_INPUTS.homeAppreciationAnnual);
       setDownPayment(Number(searchParams.get('downPayment')) || DEFAULT_INPUTS.downPaymentPercent);
@@ -155,11 +153,6 @@ export default function BuyVsRentCalculator() {
 
   const handleGenerateReport = () => {
     const reportCount = getReportViewCount();
-    if (reportCount >= 1 && !user) {
-      setShowAuthModal(true);
-      return;
-    }
-
     markReportAsViewed(`report-${reportCount + 1}`);
 
     const params = new URLSearchParams({
@@ -561,12 +554,6 @@ export default function BuyVsRentCalculator() {
           </div>
         </div>
       </main>
-
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={() => setShowAuthModal(false)}
-      />
     </div>
   );
 }

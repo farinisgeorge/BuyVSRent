@@ -21,6 +21,7 @@ const MARKET_DEFAULTS = {
   DE: { name: 'Germany', buyingCosts: 11.5, propertyTax: 0.21, sellingCosts: 3.5 },
   FR: { name: 'France', buyingCosts: 7.5, propertyTax: 0.98, sellingCosts: 5.0 },
   AT: { name: 'Austria', buyingCosts: 10.5, propertyTax: 0.1, sellingCosts: 3.5 },
+  NL: { name: 'Netherlands', buyingCosts: 2.5, propertyTax: 0.06, sellingCosts: 1.5 },
   US: { name: 'USA', buyingCosts: 3.0, propertyTax: 1.1, sellingCosts: 6.0 },
 };
 
@@ -49,7 +50,7 @@ export default function ReportContent() {
     const params = Object.fromEntries(searchParams.entries());
     
     return {
-      country: params.country || 'DE',
+      country: params.country || 'NL',
       homePrice: parseFloat(params.homePrice || '400000'),
       durationYears: parseInt(params.duration || '10'),
       homeAppreciation: parseFloat(params.appreciation || '3'),
@@ -322,6 +323,10 @@ export default function ReportContent() {
           closingCostsPercent={reportData.closingCosts}
           sellingCostsPercent={reportData.sellingCosts}
           downPaymentPercent={reportData.downPayment}
+          propertyTaxAnnualPercent={countryConfig?.propertyTax || 1.1}
+          mortgagePeriodYears={reportData.mortgagePeriod || 25}
+          maintenanceAnnualPercent={reportData.maintenanceAnnual || 1}
+          hoaMonthlyFee={reportData.hoaMonthly || 200}
         />
 
         {/* Detailed Analysis */}

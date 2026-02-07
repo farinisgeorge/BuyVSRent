@@ -13,6 +13,10 @@ interface DetailedReportProps {
   closingCostsPercent: number;
   sellingCostsPercent: number;
   downPaymentPercent: number;
+  propertyTaxAnnualPercent: number;
+  mortgagePeriodYears: number;
+  maintenanceAnnualPercent: number;
+  hoaMonthlyFee: number;
 }
 
 /**
@@ -27,41 +31,57 @@ export function DetailedReport({
   closingCostsPercent,
   sellingCostsPercent,
   downPaymentPercent,
+  propertyTaxAnnualPercent,
+  mortgagePeriodYears,
+  maintenanceAnnualPercent,
+  hoaMonthlyFee,
 }: DetailedReportProps) {
+  // Bounds check for yearlyData array
+  const finalYearIndex = Math.min(durationYears, result.yearlyData.length - 1);
+  const finalYearData = result.yearlyData[finalYearIndex];
+  
+  if (!finalYearData) {
+    return <div>Error: No data available for analysis</div>;
+  }
+
   // Calculate down payment and closing costs
   const downPayment = homePrice * (downPaymentPercent / 100);
   const closingCosts = homePrice * (closingCostsPercent / 100);
-  const sellingCosts = result.yearlyData[durationYears].homeValue * (sellingCostsPercent / 100);
-
-  // Calculate total interest paid
-  const totalMortgagePayments = result.yearlyData[durationYears].mortgageBalance > 0
-    ? result.totalBuyingCosts - downPayment - closingCosts
-    : 0;
+  const sellingCosts = finalYearData.homeValue * (sellingCostsPercent / 100);
   const loanAmount = homePrice - downPayment;
-  const totalInterestPaid = totalMortgagePayments - loanAmount;
 
-  // Calculate investment performance
-  const initialInvestment = downPayment + closingCosts;
-  const finalPortfolioValue = result.finalRentingNetWorth;
-  const investmentGains = finalPortfolioValue - initialInvestment;
+  // Calculate total interest paid by looking at mortgage balance decrease
+  let totalInterestPaid = 0;
+  let prevBalance = loanAmount;
+  for (let i = 1; i < result.yearlyData.length && i <= durationYears; i++) {
+    const currentBalance = result.yearlyData[i].mortgageBalance;
+    const yearlyMortgagePayment = result.yearlyData[i].buyerMonthlyExpense * 12;
+    const yearlyPropertyTax = result.yearlyData[i].homeValue * (propertyTaxAnnualPercent / 100);
+    const yearlyMaintenance = result.yearlyData[i].homeValue * (maintenanceAnnualPercent / 100);
+    const yearlyHOA = hoaMonthlyFee * 12;
+    const taxAndMaintenance = yearlyPropertyTax + yearlyMaintenance + yearlyHOA;
+    
+    const principalPaymentThisYear = prevBalance - currentBalance;
+    const mortgagePaymentThisYear = yearlyMortgagePayment - taxAndMaintenance;
+    const interestThisYear = Math.max(0, mortgagePaymentThisYear - principalPaymentThisYear);
+    totalInterestPaid += interestThisYear;
+    prevBalance = currentBalance;
+  }
 
-  // Calculate tax implications
+  // Calculate property taxes using actual property tax rate
   const totalPropertyTaxesPaid = result.yearlyData
-    .slice(1, durationYears + 1)
+    .slice(1, Math.min(durationYears + 1, result.yearlyData.length))
     .reduce((sum, year) => {
-      const yearHomeValue = year.homeValue;
-      const propertyTax = yearHomeValue * 0.0021; // Assuming 0.21% for Germany
+      const propertyTax = year.homeValue * (propertyTaxAnnualPercent / 100);
       return sum + propertyTax;
     }, 0);
 
   const totalUpfrontTaxes = downPayment * (closingCostsPercent / 100);
-  const totalTaxesPaid = totalUpfrontTaxes + totalPropertyTaxesPaid;
 
   // Years to break even on upfront costs through appreciation
   let yearsToBreakEvenOnTaxes = 0;
-  let appreciation = 0;
-  for (let i = 1; i <= durationYears; i++) {
-    appreciation = result.yearlyData[i].homeValue - homePrice;
+  for (let i = 1; i < result.yearlyData.length && i <= durationYears; i++) {
+    const appreciation = result.yearlyData[i].homeValue - homePrice;
     if (appreciation >= totalUpfrontTaxes) {
       yearsToBreakEvenOnTaxes = i;
       break;
@@ -152,7 +172,7 @@ export function DetailedReport({
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-slate-300">
           <h3 className="text-lg font-bold text-slate-900">💰 Amortization Schedule</h3>
           <p className="text-sm text-slate-600 mt-1">
-            How much interest vs. principal you pay each year
+            How your mortgage principal and interest break down over time
           </p>
         </div>
 
@@ -168,7 +188,7 @@ export function DetailedReport({
                   Interest Paid
                 </th>
                 <th className="px-4 py-3 text-right font-semibold text-slate-900">
-                  Total Payment
+                  Mortgage Payment
                 </th>
                 <th className="px-4 py-3 text-right font-semibold text-red-900">
                   Remaining Balance
@@ -177,16 +197,22 @@ export function DetailedReport({
             </thead>
             <tbody>
               {result.yearlyData
-                .slice(1, durationYears + 1)
+                .slice(1, Math.min(durationYears + 1, result.yearlyData.length))
                 .filter((_, idx) => idx % Math.ceil(durationYears / 10) === 0 || idx === durationYears - 1)
                 .map((year, idx) => {
-                  const prevMortgage = idx === 0 
-                    ? result.yearlyData[0].mortgageBalance
-                    : result.yearlyData[year.year - 1].mortgageBalance;
+                  const prevYear = idx === 0 ? result.yearlyData[0] : result.yearlyData[year.year - 1];
+                  const principalPaid = prevYear.mortgageBalance - year.mortgageBalance;
                   
-                  const principalPaid = prevMortgage - year.mortgageBalance;
-                  const yearPayments = year.buyerMonthlyExpense * 12;
-                  const interestPaid = yearPayments - principalPaid;
+                  // Calculate mortgage interest from the balance decrease and principal paid
+                  // Since buyerMonthlyExpense includes taxes, maintenance, HOA, we need to subtract those
+                  const yearlyPropertyTax = year.homeValue * (propertyTaxAnnualPercent / 100);
+                  const yearlyMaintenance = year.homeValue * (maintenanceAnnualPercent / 100);
+                  const yearlyHOA = hoaMonthlyFee * 12;
+                  const totalOtherCosts = yearlyPropertyTax + yearlyMaintenance + yearlyHOA;
+                  
+                  const totalBuyerMonthlyExpense = year.buyerMonthlyExpense * 12;
+                  const mortgagePaymentThisYear = totalBuyerMonthlyExpense - totalOtherCosts;
+                  const interestPaid = Math.max(0, mortgagePaymentThisYear - principalPaid);
 
                   return (
                     <tr key={year.year} className="border-b border-slate-200 hover:bg-slate-50">
@@ -198,10 +224,10 @@ export function DetailedReport({
                         {formatCurrency(Math.max(0, interestPaid))}
                       </td>
                       <td className="px-4 py-3 text-right text-slate-700">
-                        {formatCurrency(yearPayments)}
+                        {formatCurrency(Math.max(0, mortgagePaymentThisYear))}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-red-700">
-                        {formatCurrency(year.mortgageBalance)}
+                        {formatCurrency(Math.max(0, year.mortgageBalance))}
                       </td>
                     </tr>
                   );
@@ -272,24 +298,30 @@ export function DetailedReport({
           {/* Break-even Analysis */}
           <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
             <h4 className="font-bold text-indigo-900 mb-2">Break-Even Analysis</h4>
-            <p className="text-slate-700 mb-3">
-              It takes <strong>{yearsToBreakEvenOnTaxes} years</strong> of home appreciation to
-              recover your upfront transfer taxes ({formatCurrency(totalUpfrontTaxes)})
-            </p>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-slate-600">Total Taxes Paid</p>
-                <p className="font-bold text-indigo-900 mt-1">
-                  {formatCurrency(totalUpfrontTaxes)}
+            {yearsToBreakEvenOnTaxes > 0 ? (
+              <>
+                <p className="text-slate-700 mb-3">
+                  It takes <strong>{yearsToBreakEvenOnTaxes} years</strong> of home appreciation to
+                  recover your upfront transfer taxes ({formatCurrency(totalUpfrontTaxes)})
                 </p>
-              </div>
-              <div>
-                <p className="text-slate-600">Home Appreciation by Year {yearsToBreakEvenOnTaxes}</p>
-                <p className="font-bold text-indigo-900 mt-1">
-                  {formatCurrency(result.yearlyData[yearsToBreakEvenOnTaxes]?.homeValue - homePrice || 0)}
-                </p>
-              </div>
-            </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-slate-600">Total Taxes Paid</p>
+                    <p className="font-bold text-indigo-900 mt-1">
+                      {formatCurrency(totalUpfrontTaxes)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-600">Home Appreciation by Year {yearsToBreakEvenOnTaxes}</p>
+                    <p className="font-bold text-indigo-900 mt-1">
+                      {result.yearlyData[yearsToBreakEvenOnTaxes] ? formatCurrency(result.yearlyData[yearsToBreakEvenOnTaxes].homeValue - homePrice) : '—'}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="text-slate-700">Home appreciation recovers transfer taxes immediately</p>
+            )}
           </div>
 
           {/* Annual Tax Burden */}
@@ -310,9 +342,9 @@ export function DetailedReport({
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-slate-600">As % of Home Value</p>
+                  <p className="text-sm text-slate-600">Tax Rate</p>
                   <p className="text-2xl font-bold text-amber-700 mt-2">
-                    {formatPercentage((totalPropertyTaxesPaid / (homePrice * durationYears)) * 100)}
+                    {formatPercentage(propertyTaxAnnualPercent)}
                   </p>
                 </div>
               </div>
@@ -326,19 +358,19 @@ export function DetailedReport({
               <div>
                 <p className="text-slate-600">Initial Investment</p>
                 <p className="font-bold text-green-700 mt-1">
-                  {formatCurrency(initialInvestment)}
+                  {formatCurrency(downPayment + closingCosts)}
                 </p>
               </div>
               <div>
                 <p className="text-slate-600">Final Portfolio Value</p>
                 <p className="font-bold text-green-700 mt-1">
-                  {formatCurrency(finalPortfolioValue)}
+                  {formatCurrency(finalYearData.investmentPortfolio)}
                 </p>
               </div>
               <div className="col-span-2">
                 <p className="text-slate-600">Investment Gains</p>
                 <p className="text-2xl font-bold text-green-700 mt-1">
-                  {formatCurrency(investmentGains)}
+                  {formatCurrency(finalYearData.investmentPortfolio - (downPayment + closingCosts))}
                 </p>
                 <p className="text-xs text-green-600 mt-2">
                   Average annual return: {investmentReturnAnnual}%
@@ -364,18 +396,20 @@ export function DetailedReport({
               of your loan amount
             </span>
           </li>
-          <li className="flex gap-3">
-            <span className="text-indigo-600 font-bold">•</span>
-            <span>
-              Transfer taxes will be recovered in just <strong>{yearsToBreakEvenOnTaxes} years</strong>{' '}
-              through home appreciation
-            </span>
-          </li>
+          {yearsToBreakEvenOnTaxes > 0 && (
+            <li className="flex gap-3">
+              <span className="text-indigo-600 font-bold">•</span>
+              <span>
+                Transfer taxes will be recovered in just <strong>{yearsToBreakEvenOnTaxes} years</strong>{' '}
+                through home appreciation
+              </span>
+            </li>
+          )}
           <li className="flex gap-3">
             <span className="text-indigo-600 font-bold">•</span>
             <span>
               By renting, you could accumulate{' '}
-              <strong>{formatCurrency(investmentGains)}</strong> in investment gains
+              <strong>{formatCurrency(finalYearData.investmentPortfolio - (downPayment + closingCosts))}</strong> in investment gains
             </span>
           </li>
           <li className="flex gap-3">
