@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, TrendingUp, Lock, Zap } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Stealth Investor - Smart Financial Tools for Investors',
+  title: "Investor's Toolbox - Smart Financial Tools for Investors",
   description: 'Access powerful investment analysis tools. Start with our Buy vs Rent calculator.',
 };
 

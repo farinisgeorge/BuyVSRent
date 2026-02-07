@@ -1,6 +1,6 @@
 # Components Documentation
 
-Reusable UI components for the Stealth Investor calculator.
+Reusable UI components for the Investor's Toolbox calculator.
 
 ## StepIndicator
 

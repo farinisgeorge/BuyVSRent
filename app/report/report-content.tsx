@@ -125,7 +125,7 @@ export default function ReportContent() {
         <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Home className="w-6 h-6 text-indigo-600" />
-            <h1 className="text-xl font-bold text-slate-900">Stealth Investor Report</h1>
+            <h1 className="text-xl font-bold text-slate-900">Investor's Toolbox Report</h1>
           </div>
           <div className="flex gap-3">
             <button

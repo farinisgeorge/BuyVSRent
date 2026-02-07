@@ -1,21 +1,21 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About - Stealth Investor',
-  description: 'Learn about Stealth Investor and our mission to provide transparent financial analysis tools.',
+  title: "About - Investor's Toolbox",
+  description: "Learn about Investor's Toolbox and our mission to provide transparent financial analysis tools.",
 };
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       <div className="max-w-4xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold mb-8">About Stealth Investor</h1>
+        <h1 className="text-4xl font-bold mb-8">About Investor's Toolbox</h1>
         
         <div className="space-y-8 text-slate-300">
           <section>
             <h2 className="text-2xl font-semibold mb-4 text-white">Our Mission</h2>
             <p>
-              [Content coming soon - Tell your story about why you built Stealth Investor and what problem you're solving]
+              [Content coming soon - Tell your story about why you built Investor's Toolbox and what problem you're solving]
             </p>
           </section>
 

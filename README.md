@@ -134,4 +134,3 @@ This repository does not include a license by default. For open-source use, cons
 ## Contact
 
 Open issues or PRs on the repository; for quick questions ping the maintainer in the project board or add a brief issue describing the problem.
-

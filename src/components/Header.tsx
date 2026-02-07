@@ -1,31 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { TrendingUp, Menu, X, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const { isDark, toggleTheme } = useTheme();
   const pathname = usePathname();
-
-  // Load theme from localStorage on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    }
-  }, []);
-
-  const handleThemeToggle = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
 
   const isActive = (path: string) => pathname === path;
 
@@ -41,7 +26,14 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700 shadow-lg">
+      <header 
+        style={{
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
+          borderColor: isDark ? '#3f3f46' : '#e2e8f0',
+          transition: 'background-color 0.2s ease, border-color 0.2s ease',
+        }}
+        className="sticky top-0 z-40 border-b shadow-lg"
+      >
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -49,10 +41,18 @@ export function Header() {
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-white hidden sm:inline">
-                Stealth Investor
+              <span 
+                style={{ color: isDark ? '#ffffff' : '#0f172a' }}
+                className="font-bold text-xl hidden sm:inline"
+              >
+                Investor's Toolbox
               </span>
-              <span className="font-bold text-lg text-white sm:hidden">SI</span>
+              <span 
+                style={{ color: isDark ? '#ffffff' : '#0f172a' }}
+                className="font-bold text-lg sm:hidden"
+              >
+                SI
+              </span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -61,11 +61,25 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-700'
-                  }`}
+                  style={{
+                    backgroundColor: isActive(item.href) ? '#4f46e5' : 'transparent',
+                    color: isActive(item.href) 
+                      ? '#ffffff' 
+                      : isDark ? '#cbd5e1' : '#475569',
+                  }}
+                  className="px-3 py-2 rounded-lg text-sm font-medium transition-all hover:text-white"
+                  onMouseEnter={(e) => {
+                    if (!isActive(item.href)) {
+                      e.currentTarget.style.backgroundColor = isDark ? '#3f3f46' : '#f1f5f9';
+                      e.currentTarget.style.color = isDark ? '#ffffff' : '#1e293b';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive(item.href)) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = isDark ? '#cbd5e1' : '#475569';
+                    }
+                  }}
                 >
                   {item.label}
                 </Link>
@@ -75,18 +89,32 @@ export function Header() {
             {/* Desktop Theme Toggle */}
             <div className="hidden md:flex items-center gap-2">
               <button
-                onClick={handleThemeToggle}
-                className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
-                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                onClick={toggleTheme}
+                style={{
+                  color: isDark ? '#cbd5e1' : '#78716c',
+                }}
+                className="p-2 rounded-lg transition-all"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = isDark ? '#3f3f46' : '#f1f5f9';
+                  e.currentTarget.style.color = isDark ? '#ffffff' : '#1e293b';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = isDark ? '#cbd5e1' : '#78716c';
+                }}
+                title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
               >
-                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                {isDark ? <Sun size={18} /> : <Moon size={18} />}
               </button>
             </div>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-300 hover:text-white transition-colors"
+              style={{
+                color: isDark ? '#cbd5e1' : '#78716c',
+              }}
+              className="md:hidden p-2 transition-colors"
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -94,27 +122,38 @@ export function Header() {
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <nav className="md:hidden pb-4 space-y-1 border-t border-slate-700 pt-4">
+            <nav 
+              style={{
+                borderColor: isDark ? '#3f3f46' : '#e2e8f0',
+              }}
+              className="md:hidden pb-4 space-y-1 border-t pt-4"
+            >
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-700'
-                  }`}
+                  style={{
+                    backgroundColor: isActive(item.href) ? '#4f46e5' : 'transparent',
+                    color: isActive(item.href) 
+                      ? '#ffffff' 
+                      : isDark ? '#cbd5e1' : '#475569',
+                  }}
+                  className="block px-4 py-2 rounded-lg text-sm font-medium transition-all"
                 >
                   {item.label}
                 </Link>
               ))}
               <button
-                onClick={handleThemeToggle}
-                className="block w-full mt-2 px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors flex items-center justify-center gap-2"
+                onClick={toggleTheme}
+                style={{
+                  backgroundColor: isDark ? '#3f3f46' : '#f1f5f9',
+                  color: isDark ? '#cbd5e1' : '#475569',
+                }}
+                className="block w-full mt-2 px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2"
               >
-                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                {isDark ? <Sun size={16} /> : <Moon size={16} />}
+                {isDark ? 'Light Mode' : 'Dark Mode'}
               </button>
             </nav>
           )}

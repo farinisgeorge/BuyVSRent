@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Pricing - Stealth Investor',
-  description: 'Simple, transparent pricing for Stealth Investor tools. Free and paid plans available.',
+  title: "Pricing - Investor's Toolbox",
+  description: "Simple, transparent pricing for Investor's Toolbox tools. Free and paid plans available.",
 };
 
 export default function PricingPage() {

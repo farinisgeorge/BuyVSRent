@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import BuyVsRentCalculator from '@/app/calculator-content';
 
 export const metadata: Metadata = {
-  title: 'The Stealth Buy-vs-Rent Index Calculator',
+  title: "The Investor's Buy-vs-Rent Index Calculator",
   description: 'Comprehensive financial analysis tool for comparing buying versus renting properties with detailed projections.',
 };
 

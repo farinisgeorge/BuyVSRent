@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contact - Stealth Investor',
-  description: 'Get in touch with the Stealth Investor team. We\'d love to hear from you.',
+  title: "Contact - Investor's Toolbox",
+  description: "Get in touch with the Investor's Toolbox team. We'd love to hear from you.",
 };
 
 export default function ContactPage() {
@@ -68,8 +68,8 @@ export default function ContactPage() {
             <div className="space-y-8">
               <div>
                 <h3 className="font-semibold mb-2 text-blue-400">Email</h3>
-                <a href="mailto:hello@stealthinvestor.com" className="text-slate-300 hover:text-white">
-                  hello@stealthinvestor.com
+                <a href="mailto:hello@investorstoolbox.com" className="text-slate-300 hover:text-white">
+                hello@investorstoolbox.com
                 </a>
               </div>
 

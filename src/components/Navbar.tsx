@@ -12,7 +12,7 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 font-bold text-xl hover:text-blue-400">
             <span>🕵️</span>
-            <span>Stealth Investor</span>
+            <span>Investor's Toolbox</span>
           </Link>
 
           {/* Desktop Navigation */}

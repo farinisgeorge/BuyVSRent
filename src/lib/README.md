@@ -1,6 +1,6 @@
 # Library Documentation
 
-Utility functions and constants for the Stealth Investor calculator.
+Utility functions and constants for the Investor's Toolbox calculator.
 
 ## Constants
 
